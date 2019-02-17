@@ -1,4 +1,4 @@
-(* 
+(*
                               CS51 Lab 3
                     Polymorphism and record types
  *)
@@ -34,7 +34,7 @@ let add_point_pair (p1 : point_pair) (p2 : point_pair) : point_pair =
   (x1 + x2, y1 + y2) ;;
 
 ........................................................................
-Exercise 1: 
+Exercise 1:
 
 It might be nicer to deconstruct the points in a single match, rather
 than the two separate matches in the two let expressions. Reimplement
@@ -43,22 +43,25 @@ expression.
 ......................................................................*)
 
 let add_point_pair (p1 : point_pair) (p2 : point_pair) : point_pair =
-  failwith "add_point_pair not impemented" ;;
+  match p1, p2 with
+  | (x1, y1), (x2, y2) -> (x1 + x2, y1 + y2);;
 
 (* Analogously, we can define a point by using a record to package up
 the x and y coordinates. *)
 
 type point_recd = {x : int; y : int} ;;
-                   
+
 (*......................................................................
-Exercise 2: 
+Exercise 2:
 
 Implement a function add_point_recd to add two points of type
 point_recd and returning a point _rec as well.
 ......................................................................*)
 
-let add_point_recd =
-  fun _ -> failwith "add_point_recd not implemented" ;;
+let add_point_recd (p1 : point_recd) (p2 : point_recd) : point_recd=
+  match p1, p2 with
+  | {x = x1cord; y = y1cord},
+    {x = x2cord; y = y2cord} -> {x = x1cord + x2cord; y = y1cord + y2cord} ;;
 
 (* Recall the dot product from Lab 2. The dot product of two points
 (x1, y1) and (x2, y2) is the sum of the products of their x and y
@@ -70,7 +73,9 @@ product for points encoded as the point_pair type.
 ......................................................................*)
 
 let dot_product_pair (p1 : point_pair) (p2 : point_pair) : int =
-  failwith "dot_product_pair not implemented" ;;
+  match p1, p2 with
+  | (x1, y1),
+    (x2, y2) -> x1 * x2 + y1 * y2 ;;
 
 (*......................................................................
 Exercise 4: Write a function dot_product_recd to compute the dot
@@ -78,7 +83,9 @@ product for points encoded as the point_recd type.
 ......................................................................*)
 
 let dot_product_recd (p1 : point_recd) (p2 : point_recd) : int =
-  failwith "dot_product_recd not implemented" ;;
+  match p1, p2 with
+  | {x = x1cord; y = y1cord},
+    {x = x2cord; y = y2cord} -> x1cord * x2cord +  y1cord * y2cord;;
 
 (* Converting between the pair and record representations of points
 
@@ -92,17 +99,19 @@ Exercise 5: Write a function point_pair_to_recd that converts a
 point_pair to a point_recd.
 ......................................................................*)
 
-let point_pair_to_recd =
-  fun _ -> failwith "point_pair_to_recd not implemented" ;;
+let point_pair_to_recd (ptpair : point_pair) : point_recd =
+   match ptpair with
+   | (xcord, ycord) -> {x = xcord; y = ycord} ;;
 
 (*......................................................................
 Exercise 6: Write a function point_recd_to_pair that converts a
 point_recd to a point_pair.
 ......................................................................*)
 
-let point_recd_to_pair =
-  fun _ -> failwith "point_recd_to_pair not implemented" ;;
-   
+let point_recd_to_pair (recdpoint : point_recd) : point_pair =
+  match recdpoint with
+  | {x = xcord; y = ycord} -> (xcord, ycord) ;;
+
 (*======================================================================
 Part 2: A simple database of records
 
@@ -119,7 +128,7 @@ type enrollment = { name : string;
 
 (* Here's an example of a list of enrollments. *)
 
-let college = 
+let college =
   [ { name = "Pat";   id = 603858772; course = "cs51" };
     { name = "Pat";   id = 603858772; course = "expos20" };
     { name = "Kim";   id = 482958285; course = "expos20" };
@@ -139,7 +148,7 @@ Exercise 7: Define a function called transcript that takes an
 enrollment list and returns a list of all the enrollments for a given
 student as specified with his or her id.
 
-For example: 
+For example:
 
     # transcript college 993855891 ;;
     - : enrollment list =
@@ -150,8 +159,8 @@ For example:
 let transcript (enrollments : enrollment list)
                (student : int)
              : enrollment list =
-  failwith "transcript not implemented" ;;
-  
+  List.filter (fun stdrecord -> stdrecord.id = student) enrollments ;;
+
 (*......................................................................
 Exercise 8: Define a function called ids that takes an enrollment
 list and returns a list of all the id numbers in that enrollment list,
@@ -165,20 +174,21 @@ For example:
 ......................................................................*)
 
 let ids (enrollments: enrollment list) : int list =
-  failwith "ids not implemented" ;;
-  
+  List.sort_uniq compare (List.map (fun stud -> stud.id) enrollments);;
+
 (*......................................................................
 Exercise 9: Define a function called verify that determines whether all
 the entries in an enrollment list for each of the ids appearing in the
 list have the same name associated.
 
-For example: 
+For example:
 # verify college ;;
 - : bool = false
 ......................................................................*)
 
 let verify (enrollments : enrollment list) : bool =
-  failwith "verify not implemented" ;;
+ List.length enrollments = List.length (List.sort_uniq compare
+                           (List.map (fun person -> person.name) enrollments));;
 
 (*======================================================================
 Part 3: Polymorphism
@@ -201,15 +211,17 @@ worry about explicitly handling the anomalous case when the two lists
 are of different lengths.)
 ......................................................................*)
 
-let zip =
-  fun _ -> failwith "zip not implemented" ;;
+let rec zip x y =
+  match x, y with
+  | [], [] -> []
+  | xhd :: xtl, yhd :: ytl -> (xhd, yhd) :: (zip xtl ytl) ;;
 
 (*......................................................................
 Exercise 11: Partitioning a list -- Given a boolean function, say
 
     fun x -> x mod 3 = 0
 
-and a list of elements, say, 
+and a list of elements, say,
 
     [3; 4; 5; 10; 11; 12; 1]
 
@@ -226,11 +238,13 @@ way, returning a pair of lists. Here's an example:
 What is the type of the partition function, keeping in mind that it
 should be as polymorphic as possible?
 
+The type of the partition function is ('a -> bool) -> 'a list -> 'a list * 'a list
+
 Now write the function.
 ......................................................................*)
-   
-let partition =
-  fun _ -> failwith "partition not implemented" ;;
+
+let partition f lst=
+  List.partition f lst;;
 
 (*......................................................................
 Exercise 12: We can think of function application itself as a
@@ -270,6 +284,7 @@ Given the above, what should the type of the function "apply" be?
 
 Now write the function.
 ......................................................................*)
+let pred x = x - 1;;
 
-let apply =
-  fun _ -> failwith "apply not implemented" ;;
+let apply f x=
+  f x ;;
